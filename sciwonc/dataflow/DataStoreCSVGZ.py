@@ -3,6 +3,7 @@ This is the concrete factory to manage mongodb servers
 
 """
 from DataStoreFactory import DataStoreFactory
+from DataFileCSVGZ import DataFileCSVGZ
 import sys, getopt
 import os
 import os.path
@@ -17,10 +18,13 @@ class DataStoreCSVGZ(DataStoreFactory):
 
         config = None
 
+
         def __init__(self,config):
             try:
                 print "Init CSV GZ"
                 self.config = config
+
+
             except:
                 print "Error: Config file not found"
 
@@ -30,59 +34,66 @@ class DataStoreCSVGZ(DataStoreFactory):
             print "I am a CSV GZ Factory"
             pass
 
+        def readFiles(self):
+            self.files = []
+
+            for f in self.config.FILENAME:
+                self.files.append(DataFileCSVGZ(self.config,f))
+
+            return self.files
+
         def getDataByUnit(self, first, last, attributes,sort):
-            pass
-
-
-        def getQueryString(self, column, value):
-            pass
+            return self.readFiles()
 
         def getDataGroupByColumn(self, column, value, attributes, sort):
-            pass
+            return self.readFiles()
 
         def getDataAll(self, attributes, sort):
-            pass
+            return self.readFiles()
 
         def getDataGroupByFilename(self,filename):
-
-            data = []
-            schema = self.config.SCHEMA_STRING.split(self.config.DELIMITER)
-            for filepath in filename:
-
-                if os.path.isfile(filepath):
-                    with gzip.open(filepath, 'rb') as csv_file:
-                        reader = csv.reader(csv_file, delimiter=self.config.DELIMITER)
-                        line = 1
-                        docs = []
-
-                        for row in reader:
-                    	    doc = {}
-
-                    	    doc["_id"] = {"filepath": filepath, "numline":line}
-                    	    line += 1
-
-                    	    column = 0
-
-                            if(self.config.SCHEMA_FIRST_LINE == True):
-                                schema = next(reader)
-
-                    	    for header in schema:
-                    		    doc[header] = row[column]
-                    		    column += 1
-
-                    	    docs.append(doc);
-
-                        doc = {}
-                        doc['filename'] = filepath
-                        doc['data'] = docs
-
-                        data.append(doc)
-
-                        print filepath
-
-            print self.config.FILENAME
-
-            return data
+            return self.readFiles()
 
         def saveData(self, data, filename):
-            pass
+
+
+            # write schema in the first line
+
+            # write the data
+
+
+            # save file
+
+
+            try:
+
+                if filename:
+                    output_filename = filename
+                elif hasattr(self.config, 'OUTPUT_FILE'):
+                    output_filename = self.config.OUTPUT_FILE
+
+                csvgz_file = gzip.open(output_filename, 'wb')
+
+                writer = csv.writer(csvgz_file, delimiter=self.config.DELIMITER)
+
+                numline = 1
+
+                print "Saving data"
+                print "file "+output_filename
+
+                if(self.config.SCHEMA_FIRST_LINE == True):
+                    #schema = data[0].keys()
+                    schema = data[0].keys()
+                    writer.writerow(schema)
+
+
+                # define _id according to position
+                for doc in data:
+                    #print doc
+                    writer.writerow(doc.values()) #TODO: review the order
+                    numline += 1
+
+            except Exception as e:
+                print "Unexpected error:", type(e), e
+            finally:
+                csvgz_file.close()
