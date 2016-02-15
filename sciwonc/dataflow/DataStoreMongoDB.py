@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This is the concrete factory to manage mongodb servers
 
@@ -188,6 +189,8 @@ class DataStoreMongoDB(DataStoreFactory):
                     #docs.append(doc)
                     self.collection_output.insert_one(doc)
                     numline += 1
+		return True
 
             except Exception as e:
                 print "Unexpected error:", type(e), e
+		return False

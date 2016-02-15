@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 DataStoreFactory:
 
@@ -12,6 +13,9 @@ class DataStoreFactory():
         if type == "mongodb":
             from DataStoreMongoDB import DataStoreMongoDB
             return DataStoreMongoDB()
+        if type == "cassandra":
+            from DataStoreCassandra import DataStoreCassandra
+            return DataStoreCassandra()
         elif type == "csv.gz":
             from DataStoreCSVGZ import DataStoreCSVGZ
             return DataStoreCSVGZ()
