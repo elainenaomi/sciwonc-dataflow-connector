@@ -26,7 +26,7 @@ class ConditionTree:
 			converted_left = self.left.convert_to_mongo_condition()
 		else:
 			converted_left = self.left
-		
+
 		if isinstance(self.right, ConditionTree):
 			converted_right = self.right.convert_to_mongo_condition()
 		else:
@@ -45,7 +45,7 @@ class ConditionTree:
 			converted_left = self.left.convert_to_cassandra_condition()
 		else:
 			converted_left = "\"" + str(self.left) + "\""
-		
+
 		if isinstance(self.right, ConditionTree):
 			converted_right = self.right.convert_to_cassandra_condition()
 		else:
@@ -56,3 +56,6 @@ class ConditionTree:
 				converted_right = right_as_string
 
 		return converted_left + " " + self.op + " " + converted_right
+
+	def convert_to_sql_condition(self):
+		return self.convert_to_cassandra_condition()

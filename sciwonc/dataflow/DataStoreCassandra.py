@@ -52,7 +52,7 @@ class DataStoreCassandra(DataStoreFactory):
             keys = first.keys()
             # assumes first and last have two fields
             if (first[keys[-1]] == last[keys[-1]]):
-                condition_tree = ConditionTree(ConditionTree(keys[-1], "=", first[keys[-1]]), "and", ConditionTree(ConditionTree(keys[0], ">=", first[keys[0]]), 
+                condition_tree = ConditionTree(ConditionTree(keys[-1], "=", first[keys[-1]]), "and", ConditionTree(ConditionTree(keys[0], ">=", first[keys[0]]),
                     "and", ConditionTree(keys[0], "<=", last[keys[0]])))
                 try:
                     self.connection()
@@ -69,7 +69,7 @@ class DataStoreCassandra(DataStoreFactory):
                     return objects1 + objects2
                 except Exception as e:
                     print "Unexpected error:", type(e), e
-            
+
 
         def columns_values_to_tree(self, columns, values):
             # converts columns = ["event", "task"] and values = [[7, 3], [8, 5]]
@@ -109,7 +109,7 @@ class DataStoreCassandra(DataStoreFactory):
                 return self.select_objects(self.collection_input, condition_tree, attributes, sort)
             except Exception as e:
                 print "Unexpected error:", type(e), e
-            
+
 
         def getDataAll(self, attributes, sort):
 
@@ -148,7 +148,7 @@ class DataStoreCassandra(DataStoreFactory):
             column_names += "\", \"".join(dictionary.keys()) # string with the column names of the dictionary, separated by commas
             column_names += "\""
 
-            
+
             for key in dictionary:
                 try:
                     a = float(dictionary[key])

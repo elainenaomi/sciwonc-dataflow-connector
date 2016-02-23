@@ -11,6 +11,7 @@ class DataFileCSVGZ(object):
         return "reading file "+ self.filepath
 
     def readFile(self):
+        print "readFile DataFile"
         if os.path.isfile(self.filepath):
             with gzip.open(self.filepath, 'rb') as csv_file:
                 reader = csv.reader(csv_file, delimiter=self.config.DELIMITER)

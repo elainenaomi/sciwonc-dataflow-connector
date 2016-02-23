@@ -12,4 +12,5 @@ setup(name='sciwonc.dataflow',
       zip_safe=False,
       install_requires=[
         "pymongo",
+        "psycopg2"
     ])

@@ -19,6 +19,9 @@ class DataStoreFactory():
         elif type == "csv.gz":
             from DataStoreCSVGZ import DataStoreCSVGZ
             return DataStoreCSVGZ()
+        elif type == "postgres":
+            from DataStorePostgres import DataStorePostgres
+            return DataStorePostgres()
         else:
             raise NotImplementedError
 
