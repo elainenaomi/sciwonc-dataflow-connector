@@ -240,11 +240,11 @@ class DataStorePostgres(DataStoreFactory):
 
                     stringInsert = "INSERT INTO "+self.collection_output+" ("+','.join(keys)+") VALUES ("+','.join(datatypes)+")"
                     self.cursor.execute(stringInsert, tuple(values))
-
+                    self.connection.commit()
                     numline += 1
 
 
-                self.connection.commit()
+
                 self.cursor.close()
                 self.connection.close()
 
