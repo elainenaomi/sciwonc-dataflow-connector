@@ -31,7 +31,8 @@ class DataStorePostgres(DataStoreFactory):
 
         def connection(self):
             print "I am a Postgres Connection"
-            strConnection = "dbname='"+self.config.HOST+"' dbname='"+self.config.DATABASE+"' user='"+self.config.USER+"' password='"+self.config.PASSWORD+"'"
+            strConnection = "host='"+self.config.HOST+"' dbname='"+self.config.DATABASE+"' user='"+self.config.USER+"' password='"+self.config.PASSWORD+"'"
+            print strConnection
             self.connection = psycopg2.connect(strConnection)
             self.cursor = self.connection.cursor()
 
