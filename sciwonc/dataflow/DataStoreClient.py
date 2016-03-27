@@ -6,10 +6,6 @@ This client will provide a interface to connect to the DataStoreServer.
 According to a config file, it will be able to create the search query and the write query for retrieval and persistency of data.
 
 """
-
-
-
-
 class DataStoreClient:
 
     server = None

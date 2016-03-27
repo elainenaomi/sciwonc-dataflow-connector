@@ -5,6 +5,7 @@ This is the concrete factory to manage mongodb servers
 """
 from DataStoreFactory import DataStoreFactory
 from pymongo import MongoClient
+from DataObject import DataObject
 
 import pymongo
 
@@ -19,6 +20,7 @@ class DataStoreMongoDB(DataStoreFactory):
         db = None
         collection_input = None
         collection_output = None
+        type = "mongodb"
 
         def __init__(self,config):
             try:
@@ -45,13 +47,16 @@ class DataStoreMongoDB(DataStoreFactory):
 
         def getDataByUnit(self, first, last, attributes,sort):
 
+            first["numline"] = int(first["numline"])
+            last["numline"] = int(last["numline"])
+
             query = {'_id':{'$gte':first, '$lte':last}}
 
             projection = {}
             sort_query = []
 
             print "Getting data from MongoDB"
-            print query
+
 
             for attribute in attributes:
                 projection[attribute] = 'true'
@@ -61,11 +66,11 @@ class DataStoreMongoDB(DataStoreFactory):
                 sort_query.append((attribute,pymongo.ASCENDING))
 
             print projection
-
+            print sort_query
             try:
                 self.connection()
                 cursor = self.collection_input.find(query,projection).sort(sort_query)
-                return list(cursor)
+                return DataObject(self.type, cursor, self.config)
             except Exception as e:
                 print "Unexpected error:", type(e), e
 
@@ -133,7 +138,8 @@ class DataStoreMongoDB(DataStoreFactory):
             try:
                 self.connection()
                 cursor = self.collection_input.find(query,projection).sort(sort_query)
-                return list(cursor)
+                return DataObject(self.type, cursor, self.config)
+
             except Exception as e:
                 print "Unexpected error:", type(e), e
 
@@ -159,7 +165,7 @@ class DataStoreMongoDB(DataStoreFactory):
             try:
                 self.connection()
                 cursor = self.collection_input.find(query,projection)
-                return list(cursor)
+                return DataObject(self.type, cursor, self.config)
             except Exception as e:
                 print "Unexpected error:", type(e), e
 
@@ -189,8 +195,8 @@ class DataStoreMongoDB(DataStoreFactory):
                     #docs.append(doc)
                     self.collection_output.insert_one(doc)
                     numline += 1
-		return True
+                return True
 
             except Exception as e:
                 print "Unexpected error:", type(e), e
-		return False
+                return False

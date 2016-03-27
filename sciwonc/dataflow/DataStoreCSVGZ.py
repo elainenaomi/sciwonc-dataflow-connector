@@ -4,6 +4,7 @@ This is the concrete factory to manage mongodb servers
 """
 from DataStoreFactory import DataStoreFactory
 from DataFileCSVGZ import DataFileCSVGZ
+from DataObject import DataObject
 import sys, getopt
 import os
 import os.path

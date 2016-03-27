@@ -5,6 +5,7 @@ This is the concrete factory to manage postgres servers
 """
 from DataStoreFactory import DataStoreFactory
 from ConditionTree import ConditionTree
+from DataObject import DataObject
 
 import psycopg2
 
@@ -19,6 +20,7 @@ class DataStorePostgres(DataStoreFactory):
         db = None
         collection_input = None
         collection_output = None
+        type = "postgres"
 
         def __init__(self,config):
             try:
@@ -60,8 +62,7 @@ class DataStorePostgres(DataStoreFactory):
                 for attr in self.config.SORT:
                     order.append(self.config.PREFIX_COLUMN + attr.replace(" ","_"))
 
-                query = ''
-                query += ' select ' + ",".join(projection)
+                query = ' select ' + ",".join(projection)
                 query += ' from '+self.collection_input
                 query += ' WHERE ('+self.config.PREFIX_COLUMN+'filepath, '+self.config.PREFIX_COLUMN+'numline::int) between '
                 query += ' (%s,%s) and '
@@ -71,20 +72,9 @@ class DataStorePostgres(DataStoreFactory):
                 values = (self.config.FIRST_ITEM['filepath'],self.config.FIRST_ITEM['numline'],self.config.LAST_ITEM['filepath'],self.config.LAST_ITEM['numline'])
 
                 self.cursor.execute(query, values)
-                fetchAll = self.cursor.fetchall()
-                data = list()
 
-                for row in fetchAll:
-                    keys = tuple(self.config.ATTRIBUTES)
-                    values = row
+                return DataObject(self.type, self.cursor, self.config)
 
-                    data.append({k: v for k, v in zip(keys, values)})
-
-                print data[0]
-                return data
-                #print self.cursor.fetchall()
-                #cursor = self.collection_input.find(query,projection).sort(sort_query)
-                #return list(cursor)
             except Exception as e:
                 print "Unexpected error:", type(e), e
 
@@ -133,8 +123,7 @@ class DataStorePostgres(DataStoreFactory):
                 for attr in self.config.SORT:
                     order.append(self.config.PREFIX_COLUMN + attr.replace(" ","_"))
 
-                query = ''
-                query += ' select ' + ",".join(projection)
+                query = ' select ' + ",".join(projection)
                 query += ' from '+self.collection_input
                 if conditionTree is not None:
                     query += " where " + conditionTree.convert_to_sql_condition()
@@ -142,17 +131,8 @@ class DataStorePostgres(DataStoreFactory):
 
 
                 self.cursor.execute(query)
-                fetchAll = self.cursor.fetchall()
-                data = list()
 
-                for row in fetchAll:
-                    keys = tuple(self.config.ATTRIBUTES)
-                    values = row
-
-                    data.append({k: v for k, v in zip(keys, values)})
-
-
-                return data
+                return DataObject(self.type, self.cursor, self.config)
 
             except Exception as e:
                 print "Unexpected error:", type(e), e
@@ -174,23 +154,13 @@ class DataStorePostgres(DataStoreFactory):
                 for attr in self.config.SORT:
                     order.append(self.config.PREFIX_COLUMN + attr.replace(" ","_"))
 
-                query = ''
-                query += ' select ' + ",".join(projection)
+                query = ' select ' + ",".join(projection)
                 query += ' from '+self.collection_input
                 query += ' order by '+ ",".join(order)
 
-
                 self.cursor.execute(query)
-                fetchAll = self.cursor.fetchall()
-                data = list()
 
-                for row in fetchAll:
-                    keys = tuple(self.config.ATTRIBUTES)
-                    values = row
-
-                    data.append({k: v for k, v in zip(keys, values)})
-
-                return data
+                return DataObject(self.type, self.cursor, self.config)
 
             except Exception as e:
                 print "Unexpected error:", type(e), e
@@ -221,8 +191,6 @@ class DataStorePostgres(DataStoreFactory):
                         doc['numline'] = numline
                         doc['filepath'] = self.config.OUTPUT_FILE
 
-
-
                     keys = list()
                     values = list()
                     datatypes = list()
@@ -234,10 +202,6 @@ class DataStorePostgres(DataStoreFactory):
 
                         values.append(doc[k])
                         datatypes.append("%s")
-
-                    #print keys
-                    #print values
-                    #print datatypes
 
                     stringInsert = "INSERT INTO "+self.collection_output+" ("+','.join(keys)+") VALUES ("+','.join(datatypes)+")"
                     self.cursor.execute(stringInsert, tuple(values))
