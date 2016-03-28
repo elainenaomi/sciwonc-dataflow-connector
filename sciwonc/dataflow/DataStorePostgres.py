@@ -17,6 +17,7 @@ class DataStorePostgres(DataStoreFactory):
 
         config = None
         connection = None
+        cursor = None
         db = None
         collection_input = None
         collection_output = None
@@ -26,23 +27,26 @@ class DataStorePostgres(DataStoreFactory):
             try:
                 print "Init Postgres"
                 self.config = config
+
+                if (hasattr(self.config, 'COLLECTION_INPUT')):
+                    self.collection_input = self.config.COLLECTION_INPUT
+
+                if (hasattr(self.config, 'COLLECTION_OUTPUT')):
+                    self.collection_output = self.config.COLLECTION_OUTPUT
+
             except:
                 print "Error: Config file not found"
 
 
 
-        def connection(self):
-            print "I am a Postgres Connection"
-            strConnection = "host='"+self.config.HOST+"' dbname='"+self.config.DATABASE+"' user='"+self.config.USER+"' password='"+self.config.PASSWORD+"'"
-            print strConnection
-            self.connection = psycopg2.connect(strConnection)
-            self.cursor = self.connection.cursor()
+        def connect(self):
 
-            if (hasattr(self.config, 'COLLECTION_INPUT')):
-                self.collection_input = self.config.COLLECTION_INPUT
-
-            if (hasattr(self.config, 'COLLECTION_OUTPUT')):
-                self.collection_output = self.config.COLLECTION_OUTPUT
+            if self.connection is None:
+                print "I am a Postgres Connection"
+                strConnection = "host='"+self.config.HOST+"' dbname='"+self.config.DATABASE+"' user='"+self.config.USER+"' password='"+self.config.PASSWORD+"'"
+                print strConnection
+                self.connection = psycopg2.connect(strConnection)
+                self.cursor = self.connection.cursor()
 
 
         def getDataByUnit(self, first, last, attributes,sort):
@@ -50,7 +54,7 @@ class DataStorePostgres(DataStoreFactory):
             print "Getting data from Postgres"
 
             try:
-                self.connection()
+                self.connect()
 
                 projection = list()
 
@@ -101,17 +105,39 @@ class DataStorePostgres(DataStoreFactory):
 
 
         def getDataGroupByColumn(self, column, value, attributes, sort):
+
+            if type(value) is list:
+
+                dataList = []
+
+                for item in value:
+
+                    doc = {}
+                    doc[column] = item
+
+                    doc['data'] = self.getDataByColumnValue(column, item, attributes, sort)
+
+                    dataList.append(doc)
+
+                return dataList
+
+            else:
+                return self.getDataByColumnValue(column, value, attributes, sort)
+
+        def getDataByColumnValue(self, column, value, attributes, sort):
             if type(column) is not list:
                 column = [column]
 
             if type(value) is not list:
                 value = [int(value)]
 
+
+
             conditionTree = self.getColumnValuesToTree(column, value)
 
 
             try:
-                self.connection()
+                self.connect()
 
                 projection = list()
 
@@ -129,20 +155,21 @@ class DataStorePostgres(DataStoreFactory):
                     query += " where " + conditionTree.convert_to_sql_condition()
                 query += ' order by '+ ",".join(order)
 
+                cursor = self.connection.cursor()
+                cursor.execute(query)
 
-                self.cursor.execute(query)
-
-                return DataObject(self.type, self.cursor, self.config)
+                return DataObject(self.type, cursor, self.config)
 
             except Exception as e:
                 print "Unexpected error:", type(e), e
+
 
         def getDataAll(self, attributes, sort):
 
             print "Getting data from Postgres - All"
 
             try:
-                self.connection()
+                self.connect()
 
                 projection = list()
 
@@ -173,7 +200,7 @@ class DataStorePostgres(DataStoreFactory):
             try:
                 #docs = []
                 numline = 1
-                self.connection()
+                self.connect()
 
                 print "Saving data"
                 print "file "+filename

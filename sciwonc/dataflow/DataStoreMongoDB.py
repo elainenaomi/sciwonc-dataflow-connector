@@ -26,23 +26,25 @@ class DataStoreMongoDB(DataStoreFactory):
             try:
                 print "Init MongoDB"
                 self.config = config
+
             except:
                 print "Error: Config file not found"
 
 
 
-        def connection(self):
+        def connect(self):
             print "I am a MongoDB Connection"
 
             strConnection = 'mongodb://'+self.config.HOST+'/'
-            self.connection = MongoClient(strConnection)
-            self.db = getattr(self.connection, self.config.DATABASE)
+            if self.connection is None:
+                self.connection = MongoClient(strConnection)
+                self.db = getattr(self.connection, self.config.DATABASE)
 
-            if (hasattr(self.config, 'COLLECTION_INPUT')):
-                self.collection_input = getattr(self.db, self.config.COLLECTION_INPUT)
+                if (hasattr(self.config, 'COLLECTION_INPUT')):
+                    self.collection_input = getattr(self.db, self.config.COLLECTION_INPUT)
 
-            if (hasattr(self.config, 'COLLECTION_OUTPUT')):
-                self.collection_output = getattr(self.db, self.config.COLLECTION_OUTPUT)
+                if (hasattr(self.config, 'COLLECTION_OUTPUT')):
+                    self.collection_output = getattr(self.db, self.config.COLLECTION_OUTPUT)
 
 
         def getDataByUnit(self, first, last, attributes,sort):
@@ -68,7 +70,7 @@ class DataStoreMongoDB(DataStoreFactory):
             print projection
             print sort_query
             try:
-                self.connection()
+                self.connect()
                 cursor = self.collection_input.find(query,projection).sort(sort_query)
                 return DataObject(self.type, cursor, self.config)
             except Exception as e:
@@ -117,12 +119,34 @@ class DataStoreMongoDB(DataStoreFactory):
 
         def getDataGroupByColumn(self, column, value, attributes, sort):
 
+            if type(value) is list:
+
+                dataList = []
+
+                for item in value:
+
+                    doc = {}
+                    doc[column] = item
+
+                    doc['data'] = self.getDataByColumnValue(column, item, attributes, sort)
+
+                    dataList.append(doc)
+
+
+                return dataList
+
+            else:
+                return self.getDataByColumnValue(column, value, attributes, sort)
+
+
+        def getDataByColumnValue(self, column, value, attributes, sort):
+
             query = self.getQueryString(column, value)
 
             projection = {}
             sort_query = []
 
-            print "Getting data from MongoDB Group By Column"
+            print "\nGetting data from MongoDB Group By Column"
             print "Query:" + str(query)
 
             for attribute in attributes:
@@ -136,7 +160,7 @@ class DataStoreMongoDB(DataStoreFactory):
             print "SORT - " + str(sort_query)
 
             try:
-                self.connection()
+                self.connect()
                 cursor = self.collection_input.find(query,projection).sort(sort_query)
                 return DataObject(self.type, cursor, self.config)
 
@@ -163,7 +187,7 @@ class DataStoreMongoDB(DataStoreFactory):
             print projection
 
             try:
-                self.connection()
+                self.connect()
                 cursor = self.collection_input.find(query,projection)
                 return DataObject(self.type, cursor, self.config)
             except Exception as e:
@@ -177,7 +201,7 @@ class DataStoreMongoDB(DataStoreFactory):
             try:
                 #docs = []
                 numline = 1
-                self.connection()
+                self.connect()
 
                 print "Saving data"
                 print "file "+filename

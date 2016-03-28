@@ -7,10 +7,12 @@ class DataObject(object):
         self.type = type
         self.cursor = cursor
         self.config = config
-        
+
     def next(self):
         if self.type == "postgres":
             row = self.cursor.fetchone()
+            print row
+
             if row:
                 keys = tuple(self.config.ATTRIBUTES)
                 values = row
