@@ -11,7 +11,7 @@ class DataObject(object):
     def next(self):
         if self.type == "postgres":
             row = self.cursor.fetchone()
-            print row
+            #print row
 
             if row:
                 keys = tuple(self.config.ATTRIBUTES)

@@ -67,8 +67,10 @@ class DataStoreMongoDB(DataStoreFactory):
             for attribute in sort:
                 sort_query.append((attribute,pymongo.ASCENDING))
 
-            print projection
-            print sort_query
+            # print projection
+            # print "Query - "+str(query)
+            # print sort_query
+
             try:
                 self.connect()
                 cursor = self.collection_input.find(query,projection).sort(sort_query)
