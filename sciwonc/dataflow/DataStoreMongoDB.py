@@ -37,7 +37,18 @@ class DataStoreMongoDB(DataStoreFactory):
 
             strConnection = 'mongodb://'+self.config.HOST+'/'
             if self.connection is None:
-                self.connection = MongoClient(strConnection)
+
+                if (hasattr(self.config, 'READ_PREFERENCE')):
+                    readPreference = self.config.READ_PREFERENCE
+                else:
+                    readPreference = "primary"
+
+                self.connection = MongoClient(strConnection,readPreference=readPreference)
+                print strConnection
+                print self.config.READ_PREFERENCE
+                print self.connection.read_preference
+
+
                 self.db = getattr(self.connection, self.config.DATABASE)
 
                 if (hasattr(self.config, 'COLLECTION_INPUT')):
@@ -70,6 +81,8 @@ class DataStoreMongoDB(DataStoreFactory):
             # print projection
             # print "Query - "+str(query)
             # print sort_query
+
+
 
             try:
                 self.connect()
