@@ -43,9 +43,11 @@ class DataStoreMongoDB(DataStoreFactory):
                 else:
                     readPreference = "primary"
 
+
+
                 self.connection = MongoClient(strConnection,readPreference=readPreference)
                 print strConnection
-                print self.config.READ_PREFERENCE
+                print readPreference
                 print self.connection.read_preference
 
 
