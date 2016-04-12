@@ -6,6 +6,7 @@ This is the concrete factory to manage mongodb servers
 from DataStoreFactory import DataStoreFactory
 from pymongo import MongoClient
 from DataObject import DataObject
+from collections import OrderedDict
 
 import pymongo
 
@@ -32,8 +33,9 @@ class DataStoreMongoDB(DataStoreFactory):
 
 
 
-        def connect(self):
+        def connect(self, documentClass = OrderedDict):
             print "I am a MongoDB Connection"
+            print str(documentClass)
 
             strConnection = 'mongodb://'+self.config.HOST+'/'
             if self.connection is None:
@@ -44,8 +46,8 @@ class DataStoreMongoDB(DataStoreFactory):
                     readPreference = "primary"
 
 
-
-                self.connection = MongoClient(strConnection,readPreference=readPreference)
+                # default document_class=dict
+                self.connection = MongoClient(strConnection,readPreference=readPreference,document_class = documentClass )
                 print strConnection
                 print readPreference
                 print self.connection.read_preference
@@ -65,13 +67,23 @@ class DataStoreMongoDB(DataStoreFactory):
             first["numline"] = int(first["numline"])
             last["numline"] = int(last["numline"])
 
-            query = {'_id':{'$gte':first, '$lte':last}}
+            #query = {'_id':{'$gte':first, '$lte':last}}
+            first = OrderedDict(sorted(first.items()))
+            print first
+
+            last = OrderedDict(sorted(last.items()))
+            print last
+
+            subQuery = OrderedDict([('$lte',last), ('$gte',first)])
+
+            query = OrderedDict([("_id", subQuery)])
+            print query
 
             projection = {}
             sort_query = []
 
             print "Getting data from MongoDB"
-
+            print "Unit Method"
 
             for attribute in attributes:
                 projection[attribute] = 'true'
@@ -80,9 +92,10 @@ class DataStoreMongoDB(DataStoreFactory):
             for attribute in sort:
                 sort_query.append((attribute,pymongo.ASCENDING))
 
-            # print projection
-            # print "Query - "+str(query)
-            # print sort_query
+            print projection
+            print "Query - "+str(query)
+            print sort_query
+            print "\n"
 
 
 
@@ -205,7 +218,7 @@ class DataStoreMongoDB(DataStoreFactory):
 
             try:
                 self.connect()
-                cursor = self.collection_input.find(query,projection)
+                cursor = self.collection_input.find(query,projection,)
                 return DataObject(self.type, cursor, self.config)
             except Exception as e:
                 print "Unexpected error:", type(e), e
@@ -218,7 +231,7 @@ class DataStoreMongoDB(DataStoreFactory):
             try:
                 #docs = []
                 numline = 1
-                self.connect()
+                self.connect(OrderedDict)
 
                 print "Saving data"
                 print "file "+filename
@@ -226,15 +239,17 @@ class DataStoreMongoDB(DataStoreFactory):
                 # define _id according to position
                 for doc in data:
 
+                    orderedDoc = OrderedDict(doc)
+
                     if filename:
-                        doc["_id"] = {'numline':numline, 'filepath':filename}
+                        orderedDoc["_id"] = OrderedDict((('filepath',filename),('numline',numline)))
                     elif hasattr(self.config, 'OUTPUT_FILE'):
-                        doc["_id"] = {'numline':numline, 'filepath':self.config.OUTPUT_FILE}
+                        orderedDoc["_id"] = OrderedDict((('filepath',self.config.OUTPUT_FILE),('numline',numline)))
 
 
                     #print doc
                     #docs.append(doc)
-                    self.collection_output.insert_one(doc)
+                    self.collection_output.insert_one(orderedDoc)
                     numline += 1
                 return True
 

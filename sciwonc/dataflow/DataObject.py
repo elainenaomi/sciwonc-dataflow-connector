@@ -19,6 +19,7 @@ class DataObject(object):
                 return {k: v for k, v in zip(keys, values)}
         elif self.type == "mongodb":
             row = next(self.cursor,None)
+            #row = dict(row)
             return row
 
         return None
