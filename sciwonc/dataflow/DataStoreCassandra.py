@@ -119,7 +119,7 @@ class DataStoreCassandra(DataStoreFactory):
             except Exception as e:
                 print "Unexpected error:", type(e), e
 
-        def saveData(self, data, filename = None):
+        def saveData(self, data, filename = None, numline = 1):
             try:
                 #docs = []
                 numline = 1

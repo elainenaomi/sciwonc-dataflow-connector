@@ -45,7 +45,7 @@ class DataStoreFactory():
         def getDataGroupByFilename(self,filename):
             raise NotImplementedError
 
-        def saveData(self, data,filename):
+        def saveData(self, data,filename, numline):
             raise NotImplementedError
 
     @classmethod

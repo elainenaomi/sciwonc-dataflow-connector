@@ -13,12 +13,12 @@ class DataStoreServer(DataStoreFactory):
     factory = None
     connection = None
     config =  None
+    numline = 0
 
     def __init__(self,DataStoreFactory,type, config):
         """Application"""
         self.config = config
         self.factory = DataStoreFactory.getFactory(type,config)
-        #self.factory.getNoSQL(config).connection()
 
     def getData(self):
         if(self.config.OPERATION_TYPE == "UNIT"):
@@ -33,7 +33,9 @@ class DataStoreServer(DataStoreFactory):
             return None
 
     def saveData(self, data, filename):
-        #if(self.config.OPERATION_TYPE == "UNIT"):
-        return self.factory.getDataStore(self.config).saveData(data, filename)
-        #else:
-        #    return None
+        self.numline += 1
+
+        if type(data) is dict:
+            data = [data]
+
+        return self.factory.getDataStore(self.config).saveData(data, filename, self.numline)

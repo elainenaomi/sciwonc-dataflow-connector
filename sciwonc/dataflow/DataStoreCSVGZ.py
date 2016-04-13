@@ -55,7 +55,7 @@ class DataStoreCSVGZ(DataStoreFactory):
         def getDataGroupByFilename(self,filename):
             return self.readFiles()
 
-        def saveData(self, data, filename):
+        def saveData(self, data, filename, numline = 1):
 
 
             # write schema in the first line

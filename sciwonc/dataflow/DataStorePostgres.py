@@ -196,7 +196,7 @@ class DataStorePostgres(DataStoreFactory):
         def getDataGroupByFilename(self,filename):
             pass
 
-        def saveData(self, data, filename = None):
+        def saveData(self, data, filename = None, numline = 1):
             try:
                 #docs = []
                 numline = 1
