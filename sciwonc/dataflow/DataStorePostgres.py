@@ -199,7 +199,7 @@ class DataStorePostgres(DataStoreFactory):
         def saveData(self, data, filename = None, numline = 1):
             try:
                 #docs = []
-                numline = 1
+                #numline = 1
                 self.connect()
 
                 print "Saving data"
