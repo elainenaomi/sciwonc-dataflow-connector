@@ -101,7 +101,7 @@ class DataStoreMongoDB(DataStoreFactory):
 
             try:
                 self.connect()
-                cursor = self.collection_input.find(query,projection).sort(sort_query)
+                cursor = self.collection_input.find(query,projection,no_cursor_timeout=True).sort(sort_query)
                 return DataObject(self.type, cursor, self.config)
             except Exception as e:
                 print "Unexpected error:", type(e), e
@@ -191,7 +191,7 @@ class DataStoreMongoDB(DataStoreFactory):
 
             try:
                 self.connect()
-                cursor = self.collection_input.find(query,projection).sort(sort_query)
+                cursor = self.collection_input.find(query,projection,no_cursor_timeout=True).sort(sort_query)
                 return DataObject(self.type, cursor, self.config)
 
             except Exception as e:
@@ -204,7 +204,7 @@ class DataStoreMongoDB(DataStoreFactory):
             projection = {}
             sort_query = []
 
-            print "Getting data from MongoDB Group By Column"
+            print "Getting data from MongoDB ALL"
             print "Query:" + str(query)
 
             for attribute in attributes:
@@ -218,7 +218,7 @@ class DataStoreMongoDB(DataStoreFactory):
 
             try:
                 self.connect()
-                cursor = self.collection_input.find(query,projection,)
+                cursor = self.collection_input.find(query,projection,no_cursor_timeout=True)
                 return DataObject(self.type, cursor, self.config)
             except Exception as e:
                 print "Unexpected error:", type(e), e
