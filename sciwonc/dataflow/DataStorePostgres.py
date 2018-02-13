@@ -129,7 +129,12 @@ class DataStorePostgres(DataStoreFactory):
                 column = [column]
 
             if type(value) is not list:
-                value = [int(value)]
+                try:
+                    value_converted = int(value)
+                except ValueError:
+                    value_converted = str(value)
+
+                value = [value_converted]
 
 
 
@@ -154,7 +159,7 @@ class DataStorePostgres(DataStoreFactory):
                 if conditionTree is not None:
                     query += " where " + conditionTree.convert_to_sql_condition()
                 query += ' order by '+ ",".join(order)
-
+                print query
                 cursor = self.connection.cursor()
                 cursor.execute(query)
 
@@ -195,6 +200,92 @@ class DataStorePostgres(DataStoreFactory):
 
         def getDataGroupByFilename(self,filename):
             pass
+
+        def getDataDistinct(self,column):
+            print "DISTINCT"
+            print column
+            try:
+
+                self.connect()
+
+                distinct_column = self.config.PREFIX_COLUMN + column.replace(" ","_")
+
+                order = list()
+
+                # for attr in self.config.SORT:
+                #     order.append(self.config.PREFIX_COLUMN + attr.replace(" ","_"))
+
+
+                query = ' select distinct(' + distinct_column + ')'
+                query += ' from '+self.collection_input
+                query += ' limit 2'
+                # query += ' order by '+ ",".join(order)
+
+                self.cursor.execute(query)
+
+                return DataObject(self.type, self.cursor, self.config)
+
+            except Exception as e:
+                print "Unexpected error:", type(e), e
+
+        def getDataGroupByFixedWindow(self, column, value, attributes, sort):
+            print "Group By Fixed Window"
+
+
+
+            if type(value) is list:
+
+                dataList = []
+
+                for item in value:
+                    first = item[0]
+                    last = item[1]
+
+                    doc = {}
+                    doc[column] = last
+                    doc['data'] = self.getDataByInterval(column, first, last, attributes, sort)
+                    dataList.append(doc)
+
+
+                return dataList
+
+            else:
+                return self.getDataByInterval(column, first, last, attributes, sort)
+
+            pass
+
+        def getDataByInterval(self, column, first, last, attributes, sort):
+            print "get by interval"
+            column = self.config.PREFIX_COLUMN + column.replace(" ","_")
+
+            order = list()
+            for attr in sort:
+                order.append(self.config.PREFIX_COLUMN + attr.replace(" ","_"))
+
+            query = ' select * '
+            query += ' from '+self.collection_input
+            query += ' WHERE '+ column + ' between '
+            query += ' (%s) and '
+            query += ' (%s)  '
+            query += ' order by '+ ",".join(order)
+
+            projection = {}
+            sort_query = []
+
+            print "\nData by Interval"
+
+            # print "Projection: ", projection
+            print "Query - ", query
+            print first
+            print last
+
+            try:
+                self.connect()
+                values = (first,last)
+                self.cursor.execute(query, values)
+                return DataObject(self.type, self.cursor, self.config)
+            except Exception as e:
+                print "Unexpected error:", type(e), e
 
         def saveData(self, data, filename = None, numline = 1):
             try:

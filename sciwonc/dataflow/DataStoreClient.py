@@ -20,6 +20,6 @@ class DataStoreClient:
         print "Getting data from server"
         return self.server.getData()
 
-    def saveData(self, data, filename=""):
+    def saveData(self, data, filename="", numline=1):
         print "Saving data to server"
-        return self.server.saveData(data, filename)
+        return self.server.saveData(data, filename, numline)

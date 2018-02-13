@@ -51,7 +51,7 @@ class ConditionTree:
 		else:
 			right_as_string = str(self.right)
 			if (self.right == right_as_string):
-				converted_right = "\'" + self.right + "\'"
+				converted_right = "\'" + self.right.replace("'", "''") + "\'"
 			else:
 				converted_right = right_as_string
 

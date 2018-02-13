@@ -106,13 +106,13 @@ class DataStoreMongoDB(DataStoreFactory):
             except Exception as e:
                 print "Unexpected error:", type(e), e
 
-        def getQueryString(self, column, value):
+        def getQueryString(self, column, value, operator = '$or'):
 
             query = {}
 
             if type(column) is str:
 
-                if type(value) is str:
+                if type(value) is str or type(value) is unicode:
                     query = {column:value}
                 elif type(value) is list:
 
@@ -120,7 +120,7 @@ class DataStoreMongoDB(DataStoreFactory):
                     for item in value:
                         itemList.append({column:item})
 
-                    query = {'$or':itemList}
+                    query = {operator :itemList}
 
             elif type(column) is tuple:
 
@@ -139,7 +139,7 @@ class DataStoreMongoDB(DataStoreFactory):
                                 doc[column[j]] = item[j]
 
                             itemList.append(doc)
-                    query = {'$or':itemList}
+                    query = { operator :itemList}
 
             else:
                 query = None
@@ -170,7 +170,8 @@ class DataStoreMongoDB(DataStoreFactory):
 
 
         def getDataByColumnValue(self, column, value, attributes, sort):
-
+            print column
+            print type(value)
             query = self.getQueryString(column, value)
 
             projection = {}
@@ -214,11 +215,16 @@ class DataStoreMongoDB(DataStoreFactory):
             for attribute in sort:
                 sort_query.append((attribute,pymongo.ASCENDING))
 
-            print projection
+            print "PROJ - "+ str(projection)
+            print "SORT - " + str(sort_query)
 
             try:
                 self.connect()
-                cursor = self.collection_input.find(query,projection,no_cursor_timeout=True)
+                print self.collection_input
+                if sort_query:
+                    cursor = self.collection_input.find(query,projection,no_cursor_timeout=True).sort(sort_query)
+                else:
+                    cursor = self.collection_input.find(query,projection,no_cursor_timeout=True)
                 return DataObject(self.type, cursor, self.config)
             except Exception as e:
                 print "Unexpected error:", type(e), e
@@ -226,6 +232,74 @@ class DataStoreMongoDB(DataStoreFactory):
 
         def getDataGroupByFilename(self,filename):
             pass
+
+        def getDataDistinct(self,column):
+            print "DISTINCT"
+            print column
+            try:
+                self.connect()
+                cursor = self.collection_input.distinct(column,no_cursor_timeout=True)
+                return DataObject(self.type, cursor, self.config)
+            except Exception as e:
+                print "Unexpected error:", type(e), e
+
+        def getDataGroupByFixedWindow(self, column, value, attributes, sort):
+            print "Group By Fixed Window"
+
+
+
+            if type(value) is list:
+
+                dataList = []
+
+                for item in value:
+                    first = item[0]
+                    last = item[1]
+
+                    doc = {}
+                    doc[column] = last
+                    doc['data'] = self.getDataByInterval(column, first, last, attributes, sort)
+                    dataList.append(doc)
+
+
+                return dataList
+
+            else:
+                return self.getDataByInterval(column, first, last, attributes, sort)
+
+            pass
+
+        def getDataByInterval(self, column, first, last, attributes, sort):
+            print "get by interval"
+
+            subQuery = OrderedDict([('$lte',last), ('$gte',first)])
+            query = OrderedDict([(column, subQuery)])
+            print query
+
+            projection = {}
+            sort_query = []
+
+            print "\nData by Interval"
+
+            for attribute in attributes:
+                projection[attribute] = 'true'
+
+            for attribute in sort:
+                sort_query.append((attribute,pymongo.ASCENDING))
+
+            print "Projection: ", projection
+            print "Query - ", query
+            print "Sort: ", sort_query
+            print "\n"
+
+
+            try:
+                self.connect()
+                cursor = self.collection_input.find(query,projection,no_cursor_timeout=True).sort(sort_query)
+                return DataObject(self.type, cursor, self.config)
+            except Exception as e:
+                print "Unexpected error:", type(e), e
+
 
         def saveData(self, data, filename = None, numline = 1):
             try:
@@ -246,9 +320,6 @@ class DataStoreMongoDB(DataStoreFactory):
                     elif hasattr(self.config, 'OUTPUT_FILE'):
                         orderedDoc["_id"] = OrderedDict((('filepath',self.config.OUTPUT_FILE),('numline',numline)))
 
-
-                    #print doc
-                    #docs.append(doc)
                     self.collection_output.insert_one(orderedDoc)
                     numline += 1
                 return True
