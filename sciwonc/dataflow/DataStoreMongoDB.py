@@ -45,12 +45,18 @@ class DataStoreMongoDB(DataStoreFactory):
                 else:
                     readPreference = "primary"
 
+                if (hasattr(self.config, 'WRITE_CONCERN')):
+                    writeConcern = self.config.WRITE_CONCERN
+                else:
+                    writeConcern = 1
+
 
                 # default document_class=dict
-                self.connection = MongoClient(strConnection,readPreference=readPreference,document_class = documentClass )
+                self.connection = MongoClient(strConnection,readPreference=readPreference,document_class = documentClass, w=writeConcern )
                 print strConnection
                 print readPreference
                 print self.connection.read_preference
+                print self.connection.write_concern
 
 
                 self.db = getattr(self.connection, self.config.DATABASE)
