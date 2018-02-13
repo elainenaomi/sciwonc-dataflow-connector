@@ -8,6 +8,7 @@ from ConditionTree import ConditionTree
 from DataObject import DataObject
 
 import psycopg2
+import os
 
 class DataStorePostgres(DataStoreFactory):
     """Concrete Factory"""
@@ -43,7 +44,13 @@ class DataStorePostgres(DataStoreFactory):
 
             if self.connection is None:
                 print "I am a Postgres Connection"
-                strConnection = "host='"+self.config.HOST+"' dbname='"+self.config.DATABASE+"' user='"+self.config.USER+"' password='"+self.config.PASSWORD+"'"
+                host = host = os.getenv('HOST', self.config.HOST)
+                database = host = os.getenv('DATABASE', self.config.DATABASE)
+                user = host = os.getenv('USER', self.config.USER)
+                password = host = os.getenv('PASSWORD', self.config.PASSWORD)
+
+
+                strConnection = "host='"+host+"' dbname='"+database+"' user='"+user+"' password='"+password+"'"
                 print strConnection
                 self.connection = psycopg2.connect(strConnection)
                 self.cursor = self.connection.cursor()

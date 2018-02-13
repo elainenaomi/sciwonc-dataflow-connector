@@ -9,6 +9,7 @@ from DataObject import DataObject
 from collections import OrderedDict
 
 import pymongo
+import os
 
 class DataStoreMongoDB(DataStoreFactory):
     """Concrete Factory"""
@@ -37,7 +38,8 @@ class DataStoreMongoDB(DataStoreFactory):
             print "I am a MongoDB Connection"
             print str(documentClass)
 
-            strConnection = 'mongodb://'+self.config.HOST+'/'
+            host = os.getenv('HOST', self.config.HOST)
+            strConnection = 'mongodb://'+host
             if self.connection is None:
 
                 if (hasattr(self.config, 'READ_PREFERENCE')):
@@ -57,9 +59,11 @@ class DataStoreMongoDB(DataStoreFactory):
                 print readPreference
                 print self.connection.read_preference
                 print self.connection.write_concern
+                print self.config.DATABASE
 
+                database = os.getenv('DATABASE', self.config.DATABASE)
 
-                self.db = getattr(self.connection, self.config.DATABASE)
+                self.db = getattr(self.connection, database)
 
                 if (hasattr(self.config, 'COLLECTION_INPUT')):
                     self.collection_input = getattr(self.db, self.config.COLLECTION_INPUT)
